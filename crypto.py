@@ -25,7 +25,7 @@ except FileNotFoundError:
 
 cg = CoinGeckoAPI()
 
-def get_resources(resource):
+def get_resources(resource: str) -> list:
   """retrieve one of the following from cache:
   - list of supported coins
   - list of supported currencies
@@ -48,14 +48,14 @@ def get_resources(resource):
       return from_api
 
 # validation callbacks
-def validate_coin(ctx,param,value):
+def validate_coin(ctx,param,value: str) -> str: 
   all_coins = get_resources("coins")
   for coin in all_coins:
     if value == coin['id'] or value == coin['name'] or value == coin['symbol']:
       return coin['id']
   raise click.BadParameter("{} is not a valid cryptocurrency".format(value))
 
-def validate_currency(ctx, param, value):
+def validate_currency(ctx, param, value: str) -> str:
   all_currencies = get_resources("currencies")
   for currency in all_currencies:
     if value == currency:
@@ -66,7 +66,7 @@ def validate_currency(ctx, param, value):
 @click.pass_context
 @click.option("-c","--coin", default=settings['coin'], help="Name of the cryptocurrency", callback=validate_coin)
 @click.option("-cur","--currency", default=settings['currency'], help="Name of the currency to denominate the price", callback=validate_currency)
-def main(ctx, coin, currency):
+def main(ctx, coin, currency) -> None:
   """Invoked on every command. Assigns either user supplied or default values to global context object that other commands can reference.
   """
   ctx.obj['coin'] = coin
@@ -77,26 +77,37 @@ def main(ctx, coin, currency):
 @click.option("-w","--watch/--no-watch", default=False, help="Watch the price")
 @click.option("-i","--interval", default=15, help="Watch interval in seconds", show_default=True)
 @click.option("-s","--stop", type=int, help="Stop the program after specified minutes")
-def get_price(ctx, watch, interval, stop):
+def get_price(ctx, watch: bool, interval: int, stop: int) -> None:
   # TODO: make watch required if interval or stop are specified
   """Retrieves the current price for a given coin, with options to watch at a specified interval and stop after a time.
   """
+  coin = ctx.obj['coin']
+  curr = ctx.obj['currency']
   if 60 / interval > 50:
     print("WARNING: your rate of API calls will exceed the limit of 50 per minute")
   num_loops = 0
+  click.echo('DATE / TIME' + ' '*13 + 'Price ('+curr+')')
+  click.echo('-' * 40)
   if (watch):
     while True:
       num_loops += 1
-      click.echo(cg.get_price(ids=ctx.obj['coin'],vs_currencies=ctx.obj['currency']))
+      price = cg.get_price(ids=coin, vs_currencies=curr)[coin][curr]
+      click.echo(datetime.now().strftime('%d-%m-%Y %H:%M:%S') + (' '*5) + str(price))
       if (stop is not None and interval * num_loops >= stop * 60):
         break
       time.sleep(interval)
   else:
-    click.echo(cg.get_price(ids=ctx.obj['coin'],vs_currencies=ctx.obj['currency']))
+    table = PrettyTable()
+    table.field_names = ['Coin','Price ('+curr+')']
+    obj = cg.get_price(ids=coin,vs_currencies=curr)
+    price = obj[coin][curr]
+    table.add_row([coin, price])
+    click.echo(table)
+
 
 @click.command
 @click.pass_context
-def info(ctx):
+def info(ctx) -> None:
   """Retrieve basic information on a cryptocurrency
   """
   coin = cg.get_coin_by_id(id=ctx.obj['coin'])
@@ -118,7 +129,7 @@ def info(ctx):
 
 @click.command
 @click.argument('search_string')
-def search(search_string):
+def search(search_string: str) -> None:
   """Search for cryptocurrencies that match a particular string"""
   coin_list = get_resources("coins")
   coins_found = []
@@ -137,7 +148,7 @@ def search(search_string):
 @click.command
 @click.option("--currency-default", help="Set default currency to denominate prices (ISO 4217 code)")
 @click.option("--coin-default", help="Set default cryptocurrency coin to use")
-def config(currency_default,coin_default):
+def config(currency_default: str, coin_default: str) -> None:
   """View default configuration or change configuration settings
   """
   if currency_default is None and coin_default is None:
@@ -174,14 +185,14 @@ def config(currency_default,coin_default):
 @click.pass_context
 @click.option("--find-date", help="Date of price to lookup in format: dd-mm-yyyy")
 @click.option("--days", help="Number of days of history to lookup")
-def history(ctx,find_date,days):
+def history(ctx,find_date,days) -> None:
   """Look up the price of a coin on particular date or throughout the past n days"""
   table = PrettyTable()
   table.field_names = ["Date", "Price"]
-  if (find_date is not None):
+  if find_date is not None:
     data = cg.get_coin_history_by_id(ctx.obj['coin'],find_date)
     table.add_row([find_date,round(data['market_data']['current_price'][ctx.obj['currency']],2)])
-  if (days is not None):
+  if days is not None:
     data = cg.get_coin_market_chart_by_id(ctx.obj['coin'],ctx.obj['currency'],days)
     for row in data['prices']:
       formatted_date = datetime.utcfromtimestamp(row[0]/1000).strftime("%Y-%m-%d %H:%M")
@@ -217,7 +228,7 @@ def currencies():
 @click.pass_context
 @click.option("-sd","--start-date",type=click.DateTime(),required=True)
 @click.option("-ed","--end-date",type=click.DateTime(),default=datetime.today())
-def gains(ctx, start_date, end_date):
+def gains(ctx, start_date: date, end_date: date):
   """Print the price gain (or loss) between start_date and end_date.
   Both dates must be in ISO format (yyyy-mm-dd).
   If no end date is given, today's date is assumed
