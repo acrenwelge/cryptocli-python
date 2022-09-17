@@ -8,7 +8,7 @@ Note: requires Python 3
 # download the python script file to a location on your $PATH
 curl -L TBD > /usr/local/bin/crypto.py
 # setup crypto command
-echo "alias cryptop='python /usr/local/bin/crypto.py'" >> ~/.bashrc
+echo "alias crypto='python /usr/local/bin/crypto.py'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -69,7 +69,7 @@ crypto config -c bitcoin
 crypto config -cur USD
 crypto config # displays current defaults if no args set
 ```
-> Crypto coin must be its `id`. Currency must follow [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217).
+> Crypto coin must be its `id`. Currency must follow [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) AND be supported by the API used.
 
 📝 List possible coin and currency values
 ```bash
@@ -91,4 +91,6 @@ crypto history -c bitcoin -d 365 > btc-prices-last-year.txt
 
 ### Built with...
 * Python 3.9
-* [pycoingecko](https://github.com/man-c/pycoingecko) and [Coingecko API](https://www.coingecko.com/en/api/documentation?)
+* [pycoingecko](https://github.com/man-c/pycoingecko)
+* [Coingecko API](https://www.coingecko.com/en/api/documentation?)
+* [CurrencySymbols](https://pypi.org/project/currency-symbols/)

@@ -1,15 +1,13 @@
 #! /opt/homebrew/bin/python3
 
-from email.policy import default
-from gc import callbacks
 import click
 import json
 import time
-from locale import currency
 from pycoingecko import CoinGeckoAPI
-from os.path import exists, expanduser
+from os.path import expanduser
 from datetime import date, datetime
 from prettytable import PrettyTable
+from currency_symbols import CurrencySymbols
 
 crypto_dir = expanduser("~") + "/.crypto"
 config_file_path = crypto_dir + "/defaults.json"
@@ -78,7 +76,6 @@ def main(ctx, coin, currency) -> None:
 @click.option("-i","--interval", default=15, help="Watch interval in seconds", show_default=True)
 @click.option("-s","--stop", type=int, help="Stop the program after specified minutes")
 def get_price(ctx, watch: bool, interval: int, stop: int) -> None:
-  # TODO: make watch required if interval or stop are specified
   """Retrieves the current price for a given coin, with options to watch at a specified interval and stop after a time.
   """
   coin = ctx.obj['coin']
@@ -86,13 +83,13 @@ def get_price(ctx, watch: bool, interval: int, stop: int) -> None:
   if 60 / interval > 50:
     print("WARNING: your rate of API calls will exceed the limit of 50 per minute")
   num_loops = 0
-  click.echo('DATE / TIME' + ' '*13 + 'Price ('+curr+')')
-  click.echo('-' * 40)
   if (watch):
+    click.echo('DATE / TIME' + ' '*13 + 'Price ('+curr+')')
+    click.echo('-' * 40)
     while True:
       num_loops += 1
       price = cg.get_price(ids=coin, vs_currencies=curr)[coin][curr]
-      click.echo(datetime.now().strftime('%d-%m-%Y %H:%M:%S') + (' '*5) + str(price))
+      click.echo(datetime.now().strftime('%d-%m-%Y %H:%M:%S') + (' '*5) + CurrencySymbols.get_symbol(curr) + str(price))
       if (stop is not None and interval * num_loops >= stop * 60):
         break
       time.sleep(interval)
@@ -100,10 +97,9 @@ def get_price(ctx, watch: bool, interval: int, stop: int) -> None:
     table = PrettyTable()
     table.field_names = ['Coin','Price ('+curr+')']
     obj = cg.get_price(ids=coin,vs_currencies=curr)
-    price = obj[coin][curr]
+    price = CurrencySymbols.get_symbol(curr) + str(obj[coin][curr])
     table.add_row([coin, price])
     click.echo(table)
-
 
 @click.command
 @click.pass_context
@@ -119,7 +115,7 @@ def info(ctx) -> None:
   table.add_row(['Symbol',coin['symbol']])
   table.add_row(['Hash algorithm',coin['hashing_algorithm']])
   table.add_row(['Genesis date',coin['genesis_date']])
-  table.add_row(['Current price',coin['market_data']['current_price'][ctx.obj['currency']]])
+  table.add_row(['Current price',CurrencySymbols.get_symbol(ctx.obj['currency'])+str(coin['market_data']['current_price'][ctx.obj['currency']])])
   table.add_row(['Max supply',coin['market_data']['max_supply']])
   table.add_row(['Circulating supply', coin['market_data']['circulating_supply']])
   table.add_row(['Market Cap', coin['market_data']['market_cap']['usd']])
@@ -243,8 +239,9 @@ def gains(ctx, start_date: date, end_date: date):
   end_price = end_data['market_data']['current_price'][ctx.obj['currency']]
   percent_change = (end_price - start_price) / start_price * 100
   word = 'increased' if percent_change > 0 else 'decreased'
-  click.echo("{coin} {txt} by {num:.2f}% from {begin:,.2f} to {end:,.2f}"
-    .format(coin=ctx.obj['coin'],txt=word,num=percent_change,begin=start_price,end=end_price))
+  click.echo("{coin} {txt} by {num:.2f}% from {sym}{begin:,.2f} to {sym}{end:,.2f}"
+    .format(coin=ctx.obj['coin'],txt=word,sym=CurrencySymbols.get_symbol(ctx.obj['currency']),
+    num=percent_change,begin=start_price,end=end_price))
 
 main.add_command(get_price)
 main.add_command(info)
