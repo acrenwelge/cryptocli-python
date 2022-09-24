@@ -1,0 +1,13 @@
+[project]
+name = "pycryptocli"
+version = "0.0.1"
+dependencies = [
+    'importlib-metadata; python_version<"3.8"',
+    "click",
+    "pycoingecko",
+    "prettytable",
+    "currency_symbols"
+]
+
+[project.scripts]
+pycrypto = "crypto:main"
