@@ -8,9 +8,9 @@ from prettytable import PrettyTable
 from currency_symbols import CurrencySymbols
 
 # project imports
-import util
-import price
-import info
+from . import util
+from . import price
+from . import info
 
 # init
 settings = util.load_config_settings()
@@ -31,6 +31,7 @@ def validate_currency(ctx, param, value: str) -> str:
       return value
   raise click.BadParameter("{} is not a valid currency denomination".format(value))
 
+# main function - entrypoint
 @click.group()
 @click.pass_context
 @click.option("-c","--coin", default=settings['coin'], help="Name of the cryptocurrency", callback=validate_coin)
@@ -135,6 +136,3 @@ list.add_command(currencies)
 main.add_command(list)
 main.add_command(history)
 main.add_command(gains)
-
-if __name__ == '__main__':
-  main()

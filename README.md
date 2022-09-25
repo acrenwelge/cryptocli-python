@@ -3,13 +3,20 @@
 Ever felt the pressing need to lookup crypto data right from your shell? Now you can!
 
 ### Installation
-Note: requires Python 3
+Note: requires Python 3, [pipx](https://pypa.github.io/pipx/) recommended
 ```bash
-# download the python script file to a location on your $PATH
-curl -L TBD > /usr/local/bin/crypto.py
-# setup crypto command
-echo "alias crypto='python /usr/local/bin/crypto.py'" >> ~/.bashrc
+pipx install cryptocli
+# alias to 'crypto' command
+echo "alias crypto=cryptocli" >> ~/.bashrc
 source ~/.bashrc
+```
+
+### Build from source
+Note: [hatch](https://hatch.pypa.io/) is the build tool
+```bash
+git clone https://github.com/acrenwelge/cryptocli-python.git
+python -m build
+pipx install dist/*.whl
 ```
 
 ### Usage
