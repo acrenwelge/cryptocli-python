@@ -64,19 +64,27 @@ def search(search_string: str) -> None:
 @click.command
 @click.pass_context
 @click.option("--find-date", help="Date of price to lookup in format: dd-mm-yyyy")
-@click.option("--days", help="Number of days of history to lookup")
-def history(ctx,find_date,days) -> None:
+@click.option("-d","--days", help="Lookup the price for the past number of days")
+@click.option("-w","--weeks", help="Lookup the price for the past number of weeks")
+@click.option("-m","--months", help="Lookup the price for the past number of months")
+def history(ctx,find_date,days,weeks,months) -> None:
   """Look up the price of a coin on particular date or throughout the past n days"""
+  def lookup_by_days(d):
+    data = cg.get_coin_market_chart_by_id(ctx.obj['coin'],ctx.obj['currency'],d)
+    for row in data['prices']:
+      formatted_date = datetime.utcfromtimestamp(row[0]/1000).strftime("%Y-%m-%d %H:%M")
+      table.add_row([formatted_date, round(row[1],2)])
   table = PrettyTable()
   table.field_names = ["Date", "Price"]
   if find_date is not None:
     data = cg.get_coin_history_by_id(ctx.obj['coin'],find_date)
     table.add_row([find_date,round(data['market_data']['current_price'][ctx.obj['currency']],2)])
-  if days is not None:
-    data = cg.get_coin_market_chart_by_id(ctx.obj['coin'],ctx.obj['currency'],days)
-    for row in data['prices']:
-      formatted_date = datetime.utcfromtimestamp(row[0]/1000).strftime("%Y-%m-%d %H:%M")
-      table.add_row([formatted_date, round(row[1],2)])
+  elif days is not None:
+    lookup_by_days(days)
+  elif weeks is not None:
+    lookup_by_days(int(weeks) * 7)
+  elif months is not None:
+    lookup_by_days(int(months) * 30)
   click.echo(table)
 
 @click.group

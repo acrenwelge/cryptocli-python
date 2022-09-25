@@ -9,15 +9,9 @@
     * Example: `crypto gains -c bitcoin 2020-01-01 2021-01-01`
   * Compare performance of one coin to another
     * Example: `crypto gains -c bitcoin -c ethereum 2020-01-01 2021-01-01`
+* published to PyPi for installation via `pipx`
 
 ## Future Ideas
-```bash
-crypto history -c bitcoin -d 10 # past 10 days of bitcoin price
-crypto history -c bitcoin -d 10 --graph # add a graph
-crypto history -c bitcoin -w 5 # past 5 weeks of bitcoin price
-crypto history -c bitcoin -m 3 # past 3 months of bitcoin price```
-```
-
 * Multi-coin, multi-currency command support
 * Visualization
   * Graph for historical data

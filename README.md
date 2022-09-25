@@ -98,6 +98,7 @@ crypto history -c bitcoin -d 365 > btc-prices-last-year.txt
 
 ### Built with...
 * Python 3.9
+* [Click](https://click.palletsprojects.com/en/8.1.x/)
 * [pycoingecko](https://github.com/man-c/pycoingecko)
 * [Coingecko API](https://www.coingecko.com/en/api/documentation?)
 * [CurrencySymbols](https://pypi.org/project/currency-symbols/)
